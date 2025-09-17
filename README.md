@@ -1,4 +1,4 @@
-# Haven
+<h1 align="center">Haven</h1>
 **A *forever-work-in-progress* self-hosted server setup**
 
 Based on a multi-node k3s cluster running on VMs and bare metal hardware.
@@ -34,8 +34,11 @@ Also, the repository name is a reference to my local TLD which is `.haven` :)
 - dev
     - Gitea Runner (x64)
     - Gitea Runner (arm64)
-- lab
-    - Nothing yet, just a playground/sandbox namespace
+
+#### Miscellaneous namespaces
+
+- lab (A playground/sandbox namespace)
+    - nfs-pod (for testing and accessing NFS mounts through NFS)
 - metallb-system
     - MetalLB components
 - cert-manager

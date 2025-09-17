@@ -2,7 +2,8 @@ media/
 default/*tt*
 certs/ca*
 
-lab
+lab/*
+!lab/nfs-pod.yaml
 
 rbac
 cronjobs

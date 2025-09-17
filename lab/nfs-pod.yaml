@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nfs-pod
+spec:
+  containers:
+  - name: nfs-container
+    image: alpine:latest
+    env:
+      - name: PUID
+        value: "1000"
+      - name: PGID
+        value: "1000"
+    volumeMounts:
+    - name: nfs-backup
+      mountPath: /mnt/Backup
+    - name: nfs-storage
+      mountPath: /mnt/Storage
+    command: ["/bin/sh", "-c", "sleep infinity"]
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 800m
+        memory: 256Mi    
+    securityContext:
+      privileged: true
+  volumes:
+  - name: nfs-backup
+    nfs:
+      server: 192.168.15.99
+      path: /export/Backup
+  - name: nfs-storage
+    nfs:
+      server: 192.168.15.99
+      path: /export/Storage
