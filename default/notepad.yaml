@@ -1,0 +1,81 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notepad
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notepad
+  template:
+    metadata:
+      labels:
+        app: notepad
+    spec:
+      containers:
+        - name: notepad
+          image: jdreinhardt/minimalist-web-notepad:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: notepad-data
+              mountPath: /var/www/html/_tmp
+      volumes:
+        - name: notepad-data
+          persistentVolumeClaim:
+            claimName: notepad-data
+
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: notepad
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: notepad
+  ports:
+    - port: 80
+      targetPort: 80
+---
+# 3) PersistentVolumeClaim (local storage via k3s local-path)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: notepad-data
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "notepad-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: notepad
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: notepad.lab
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: notepad
+                port:
+                  number: 80

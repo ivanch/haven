@@ -1,0 +1,103 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-config
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: code-config
+  template:
+    metadata:
+      labels:
+        app: code-config
+    spec:
+      containers:
+        - name: code-config
+          image: lscr.io/linuxserver/code-server:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: PROXY_DOMAIN
+              value: "code-config.haven"
+            - name: DEFAULT_WORKSPACE
+              value: "/k8s-config"
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+              cpu: 500m
+          ports:
+            - containerPort: 8443
+              name: code-port
+          volumeMounts:
+            - name: code-config
+              mountPath: /config
+            - name: k8s-config
+              mountPath: /k8s-config
+      volumes:
+        - name: code-config
+          persistentVolumeClaim:
+            claimName: code-config
+        - name: k8s-config
+          nfs:
+            server: 192.168.15.61
+            path: /export/config
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-config
+  namespace: infra
+spec:
+  type: ClusterIP
+  selector:
+    app: code-config
+  ports:
+    - port: 8443
+      targetPort: code-port
+---
+# 3) PersistentVolumeClaim (for /config)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: code-config
+  namespace: infra
+  annotations:
+    nfs.io/storage-path: "code-config"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: code-config
+  namespace: infra
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: code-config.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: code-config
+                port:
+                  number: 8443

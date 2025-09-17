@@ -1,0 +1,86 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beszel
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beszel
+  template:
+    metadata:
+      labels:
+        app: beszel
+    spec:
+      containers:
+        - name: beszel
+          image: henrygd/beszel:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - containerPort: 8090
+              name: beszel-port
+          volumeMounts:
+            - name: beszel-config
+              mountPath: /beszel_data
+      volumes:
+        - name: beszel-config
+          persistentVolumeClaim:
+            claimName: beszel-config
+---
+# 2) Service  
+apiVersion: v1
+kind: Service
+metadata:
+  name: beszel
+  namespace: infra
+spec:
+  type: ClusterIP
+  selector:
+    app: beszel
+  ports:
+    - port: 80
+      targetPort: beszel-port
+---
+# 3) PersistentVolumeClaim (for /config)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beszel-config
+  namespace: infra
+  annotations:
+    nfs.io/storage-path: "beszel-config"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: beszel
+  namespace: infra
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: beszel.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: beszel
+                port:
+                  number: 80

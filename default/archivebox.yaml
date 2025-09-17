@@ -1,0 +1,145 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonic
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonic
+  template:
+    metadata:
+      labels:
+        app: sonic
+    spec:
+      containers:
+      - name: sonic
+        image: archivebox/sonic:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1491
+        env:
+        - name: SEARCH_BACKEND_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: password
+              key: password
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archivebox
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: archivebox
+  template:
+    metadata:
+      labels:
+        app: archivebox
+    spec:
+      containers:
+      - name: archivebox
+        image: archivebox/archivebox:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SONIC_HOST
+          value: "sonic.default.svc.cluster.local"
+        - name: SONIC_PORT
+          value: "1491"
+        - name: SEARCH_BACKEND_ENGINE
+          value: "sonic"
+        - name: SONIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: password
+              key: password
+        - name: ADMIN_USERNAME
+          value: "ivanch"
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: password
+              key: password
+        - name: CSRF_TRUSTED_ORIGINS
+          value: "archive.haven"
+        - name: ALLOWED_HOSTS
+          value: "*"
+        - name: PUBLIC_ADD_VIEW
+          value: "false"
+        volumeMounts:
+        - name: archivebox-data
+          mountPath: /data
+      volumes:
+      - name: archivebox-data
+        persistentVolumeClaim:
+          claimName: archivebox-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonic-svc
+  namespace: default
+spec:
+  selector:
+    app: sonic
+  ports:
+  - protocol: TCP
+    port: 1491
+    targetPort: 1491
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: archivebox-svc
+  namespace: default
+spec:
+  selector:
+    app: archivebox
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+---
+# 3) PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archivebox-data
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "archivebox-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+    limits:
+      storage: 30Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: archivebox-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "archive.haven"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: archivebox-svc
+            port:
+              number: 8000

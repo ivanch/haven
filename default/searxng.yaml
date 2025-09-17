@@ -1,0 +1,86 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: searxng
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: searxng
+  template:
+    metadata:
+      labels:
+        app: searxng
+    spec:
+      containers:
+        - name: searxng
+          image: searxng/searxng:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - containerPort: 8080
+              name: searxng-port
+          volumeMounts:
+            - name: searxng-config
+              mountPath: /etc/searxng
+      volumes:
+        - name: searxng-config
+          persistentVolumeClaim:
+            claimName: searxng-config
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: searxng
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: searxng
+  ports:
+    - port: 8080
+      targetPort: searxng-port
+---
+# 3) PersistentVolumeClaim (for /config)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: searxng-config
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "searxng-config"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: searxng
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: search.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: searxng
+                port:
+                  number: 8080

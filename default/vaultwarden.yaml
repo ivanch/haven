@@ -1,0 +1,123 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultwarden
+  template:
+    metadata:
+      labels:
+        app: vaultwarden
+    spec:
+      containers:
+        - name: vaultwarden
+          image: vaultwarden/server:latest
+          imagePullPolicy: Always
+          env:
+            - name: DOMAIN
+              value: "https://vault.haven"
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-admin-token
+                  key: ADMIN_TOKEN
+          ports:
+            - containerPort: 80
+              name: vault-port
+          volumeMounts:
+            - name: vaultwarden-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 250m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+      volumes:
+        - name: vaultwarden-data
+          persistentVolumeClaim:
+            claimName: vaultwarden-data
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: vaultwarden
+  ports:
+    - port: 80
+      targetPort: vault-port
+---
+# 3) PersistentVolumeClaim (for /data)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vaultwarden-data
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "vaultwarden-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vaultwarden
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - vault.haven
+    secretName: vaultwarden-tls
+  rules:
+    - host: vault.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden
+                port:
+                  number: 80
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vaultwarden-public
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: vault.ivanch.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden
+                port:
+                  number: 80

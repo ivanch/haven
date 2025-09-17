@@ -1,0 +1,100 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uptimekuma
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: uptimekuma
+  template:
+    metadata:
+      labels:
+        app: uptimekuma
+    spec:
+      containers:
+        - name: uptimekuma
+          image: louislam/uptime-kuma:1
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - containerPort: 3001
+              name: uptimekuma-port
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: uptimekuma-config
+              mountPath: /app/data
+      volumes:
+        - name: uptimekuma-config
+          persistentVolumeClaim:
+            claimName: uptimekuma-config
+---
+# 2) Service  
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptimekuma
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: uptimekuma
+  ports:
+    - port: 3001
+      targetPort: uptimekuma-port
+---
+# 3) PersistentVolumeClaim (for /config)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uptimekuma-config
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "uptimekuma-config"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 4) Ingress (Traefik)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptimekuma
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: uptimekuma.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: uptimekuma
+                port:
+                  number: 3001
