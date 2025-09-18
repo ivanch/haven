@@ -1,4 +1,5 @@
 <h1 align="center">Haven</h1>
+
 **A *forever-work-in-progress* self-hosted server setup**
 
 Based on a multi-node k3s cluster running on VMs and bare metal hardware.
