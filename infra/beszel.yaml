@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: beszel
-          image: henrygd/beszel:latest
+          image: ghcr.io/henrygd/beszel/beszel:0.12.10
           imagePullPolicy: Always
           env:
             - name: PUID

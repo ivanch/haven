@@ -2,7 +2,7 @@
 ## Install nfs-subdir-external-provisioner
 ```bash
 helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
-    --set nfs.server=192.168.15.61 \
+    --set nfs.server=<NFS_SERVER> \
     --set nfs.path=/export/config \
     --set storageClass.name=nfs-client \
     --set storageClass.pathPattern='${.PVC.namespace}/${.PVC.annotations.nfs.io/storage-path}'
@@ -52,14 +52,20 @@ kubectl apply -f metallb-system/address-pool.yaml
 ```bash
 kubectl create namespace cert-manager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.yaml
+```
 
-# Create the private key for local CA
+Create the private key for local CA:
+```bash
 openssl genrsa -out ca.key 4096
+```
 
-# Create the root certificate, valid for 10 years
+Create the root certificate (valid for 10 years):
+```bash
 openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt -subj "/CN=Homelab CA"
-
-# Create secret and ClusterIssuer
-kubectl create secret tls internal-ca-secret -cert=ca.crt --key=ca.key -n cert-manager
-kubectl apply -f cert-manager/cluster-issuer.yaml
+```
+  
+Create secret and ClusterIssuer
+```bash
+kubectl create secret tls internal-ca-secret --cert=ca.crt --key=ca.key -n cert-manager
+kubectl apply -f certs/internal-issuer.yaml
 ```
