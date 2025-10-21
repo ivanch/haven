@@ -17,13 +17,8 @@ spec:
     spec:
       containers:
         - name: beszel
-          image: ghcr.io/henrygd/beszel/beszel:0.12.10
+          image: ghcr.io/henrygd/beszel/beszel:14.1
           imagePullPolicy: Always
-          env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
           ports:
             - containerPort: 8090
               name: beszel-port

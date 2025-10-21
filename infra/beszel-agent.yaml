@@ -22,7 +22,7 @@ spec:
             secretKeyRef:
               name: beszel-key
               key: SECRET-KEY
-        image: henrygd/beszel-agent:0.12.10
+        image: henrygd/beszel-agent:0.14.1
         imagePullPolicy: Always
         name: beszel-agent
         ports:
