@@ -15,9 +15,18 @@ spec:
       labels:
         app: beszel
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
       containers:
         - name: beszel
-          image: ghcr.io/henrygd/beszel/beszel:14.1
+          image: ghcr.io/henrygd/beszel/beszel:0.14.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8090

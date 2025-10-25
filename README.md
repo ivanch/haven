@@ -27,7 +27,7 @@ Also, the repository name is a reference to my local TLD which is `.haven` :)
     - AdGuardHome-2 (2nd instance)
     - AdGuard-Sync
 - infra
-    - Haven Notify (my own internal service)
+    - [Haven Notify](https://git.ivanch.me/ivanch/server-scripts/src/branch/main/haven-notify)
     - Beszel
     - Beszel Agent (running as DaemonSet)
     - Code Config (vscode for internal config editing)
@@ -35,6 +35,13 @@ Also, the repository name is a reference to my local TLD which is `.haven` :)
 - dev
     - Gitea Runner (x64)
     - Gitea Runner (arm64)
+- monitoring
+    - Grafana
+    - Prometheus
+    - Node Exporter
+    - Kube State Metrics
+    - Loki
+    - Alloy
 
 #### Miscellaneous namespaces
 
@@ -50,3 +57,6 @@ Also, the repository name is a reference to my local TLD which is `.haven` :)
 - Move uptimekuma to `infra` namespace
 - Add links to each application docs
 - Add links to server scripts
+- Move alloy to `monitoring` namespace
+- Change `loki`, `grafana`, and `prometheus` to Helm chart installation
+- Change loki and prometheus to use PVCs
