@@ -2,15 +2,15 @@
 
 **A *forever-work-in-progress* self-hosted server setup**
 
-Based on a multi-node k3s cluster running on VMs and bare metal hardware.
+Runs on a multi-node k3s cluster deployed across VMs and bare-metal hosts.
 
-The overall application configs are stored in a NFS share inside of a SSD that was purposed specifically for this. For that I'm using `nfs-subdir-external-provisioner` as a dynamic storage provisioner with specified paths on each PVC. Some other data is stored on a NAS server with a NFS share as well.
+Application configuration is stored on an NFS share located on a dedicated SSD. This uses `nfs-subdir-external-provisioner` as a dynamic storage provisioner with PVC-specific paths. Additional data is stored on a NAS exported via NFS.
 
-The cluster is running on `k3s` with `nginx` as the ingress controller. For load balancing I'm using `MetalLB` in layer 2 mode. I'm also using `cert-manager` for local CA and certificates (as Vaultwarden requires it).
+The cluster runs `k3s` with `nginx` as the ingress controller. `MetalLB` is used in layer 2 mode for load balancing. `cert-manager` provides a local CA and issues certificates (required by Vaultwarden).
 
-For more information on setup, check out [SETUP.md](SETUP.md).
+For setup details, see [SETUP.md](SETUP.md).
 
-Also, the repository name is a reference to my local TLD which is `.haven` :)
+The repository name references my local TLD, `.haven` ;)
 
 ## Namespaces
 - default
@@ -29,8 +29,8 @@ Also, the repository name is a reference to my local TLD which is `.haven` :)
 - infra
     - [Haven Notify](https://git.ivanch.me/ivanch/server-scripts/src/branch/main/haven-notify)
     - Beszel
-    - Beszel Agent (running as DaemonSet)
-    - Code Config (vscode for internal config editing)
+    - Beszel Agent (running as a DaemonSet)
+    - Code Config (VS Code for internal config editing)
     - WireGuard Easy
 - dev
     - Gitea Runner (x64)
@@ -45,18 +45,18 @@ Also, the repository name is a reference to my local TLD which is `.haven` :)
 
 #### Miscellaneous namespaces
 
-- lab (A playground/sandbox namespace)
-    - nfs-pod (for testing and accessing NFS mounts through NFS)
+- lab (a playground/sandbox namespace)
+    - nfs-pod (for testing and accessing NFS mounts)
 - metallb-system
     - MetalLB components
 - cert-manager
-    - Cert-Manager components
+    - cert-manager components
 
-## Todo:
-- Move archivebox data to its own PVC on NAS
-- Move uptimekuma to `infra` namespace
-- Add links to each application docs
+## Todo
+- Move ArchiveBox data to its own PVC on the NAS
+- Move Uptime Kuma to the infra namespace
+- Add links to each application's documentation
 - Add links to server scripts
-- Move alloy to `monitoring` namespace
-- Change `loki`, `grafana`, and `prometheus` to Helm chart installation
-- Change loki and prometheus to use PVCs
+- Move Alloy to the monitoring namespace
+- Install Loki, Grafana, and Prometheus via Helm charts
+- Configure Loki and Prometheus to use PVCs
