@@ -49,7 +49,7 @@ spec:
     - port: 8080
       targetPort: searxng-port
 ---
-# 3) PersistentVolumeClaim (for /config)
+# 3) PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -65,7 +65,7 @@ spec:
     requests:
       storage: 1Gi
 ---
-# 4) Ingress (Traefik)
+# 4) Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

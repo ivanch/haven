@@ -75,7 +75,7 @@ spec:
     requests:
       storage: 1Gi
 ---
-# 4) Ingress (Traefik)
+# 4) Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -102,7 +102,7 @@ spec:
                 port:
                   number: 80
 ---
-# 4) Ingress (Traefik)
+# 4) Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

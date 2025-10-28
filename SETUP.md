@@ -50,7 +50,7 @@ kubectl apply -f metallb-system/address-pool.yaml
 
 ## Install cert-manager
 ```bash
-kubectl create namespace cert-manager
+kubectl create ns cert-manager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.yaml
 ```
 
