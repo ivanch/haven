@@ -26,7 +26,7 @@ spec:
                 - amd64
       containers:
         - name: beszel
-          image: ghcr.io/henrygd/beszel/beszel:0.14.1
+          image: ghcr.io/henrygd/beszel/beszel:0.17.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8090
