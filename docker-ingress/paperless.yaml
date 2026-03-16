@@ -1,0 +1,44 @@
+# docker-node: iris.haven
+# port: 4100
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-service
+  namespace: docker-ingress
+spec:
+  ports:
+    - port: 80
+      targetPort: 4200
+---
+# Endpoints
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: paperless-service
+  namespace: docker-ingress
+subsets:
+  - addresses:
+      - ip: 192.168.15.101
+    ports:
+      - port: 4200
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paperless-ingress
+  namespace: docker-ingress
+spec:
+  rules:
+    - host: paperless.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paperless-service
+                port:
+                  number: 80

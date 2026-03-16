@@ -51,6 +51,8 @@ The repository name references my local TLD, `.haven` ;)
     - MetalLB components
 - cert-manager
     - cert-manager components
+- docker-ingress
+    - nginx ingress controller components for Docker-based services
 
 ## Todo
 - Move ArchiveBox data to its own PVC on the NAS
