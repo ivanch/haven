@@ -22,6 +22,7 @@ The repository name references my local TLD, `.haven` ;)
     - Searxng
     - Uptimekuma
     - Vaultwarden
+    - OpenWebUI
 - dns
     - AdGuardHome
     - AdGuardHome-2 (2nd instance)

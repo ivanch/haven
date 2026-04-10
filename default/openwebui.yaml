@@ -1,94 +1,90 @@
----
 # 1) Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: searxng
+  name: openwebui
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: searxng
+      app: openwebui
   template:
     metadata:
       labels:
-        app: searxng
+        app: openwebui
     spec:
-      enableServiceLinks: false
       containers:
-        - name: searxng
-          image: searxng/searxng:latest
+        - name: openwebui
+          image: ghcr.io/open-webui/open-webui:main-slim
           imagePullPolicy: Always
-          env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
           ports:
             - containerPort: 8080
-              name: searxng-port
           resources:
             requests:
-              cpu: "100m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
+              cpu: "250m"
               memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
           volumeMounts:
-            - name: searxng-config
-              mountPath: /etc/searxng
+            - name: openwebui-data
+              mountPath: /app/backend/data
       volumes:
-        - name: searxng-config
+        - name: openwebui-data
           persistentVolumeClaim:
-            claimName: searxng-config
+            claimName: openwebui-data
 ---
 # 2) Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: searxng
+  name: openwebui
   namespace: default
 spec:
   type: ClusterIP
   selector:
-    app: searxng
+    app: openwebui
   ports:
     - port: 8080
-      targetPort: searxng-port
+      targetPort: 8080
 ---
 # 3) PersistentVolumeClaim
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: searxng-config
+  name: openwebui-data
   namespace: default
   annotations:
-    nfs.io/storage-path: "searxng-config"
+    nfs.io/storage-path: "openwebui-data"
 spec:
   storageClassName: "nfs-client"
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 5Gi
+    limits:
+      storage: 10Gi
 ---
 # 4) Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: searxng
+  name: openwebui
   namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
   ingressClassName: nginx
   rules:
-    - host: search.haven
+    - host: openwebui.haven
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: searxng
+                name: openwebui
                 port:
                   number: 8080
