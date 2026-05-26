@@ -30,16 +30,6 @@ spec:
       labels:
         app: adguardhome
     spec:
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - nexus
       containers:
       - name: adguardhome
         image: adguard/adguardhome:latest
@@ -58,7 +48,22 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 256Mi
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
         volumeMounts:
         - name: adguardhome-storage
           mountPath: /opt/adguardhome/work
@@ -73,6 +78,29 @@ apiVersion: v1
 kind: Service
 metadata:
   name: adguardhome-svc
+  namespace: dns
+spec:
+  type: LoadBalancer
+  selector:
+    app: adguardhome
+  loadBalancerIP: 192.168.20.200
+  ports:
+  - name: dns-tcp
+    port: 53
+    targetPort: 53
+    protocol: TCP
+  - name: dns-udp
+    port: 53
+    targetPort: 53
+    protocol: UDP
+  - name: web
+    port: 80
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguardhome-lan-svc
   namespace: dns
 spec:
   type: LoadBalancer

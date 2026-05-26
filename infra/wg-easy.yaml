@@ -93,7 +93,7 @@ spec:
   type: LoadBalancer
   selector:
     app: wg-easy
-  loadBalancerIP: 192.168.15.202
+  loadBalancerIP: 192.168.20.203
   ports:
   - name: wg-port
     port: 51820

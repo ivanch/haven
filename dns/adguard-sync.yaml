@@ -74,8 +74,8 @@ spec:
             cpu: 100m
             memory: 128Mi
           limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 500m
+            memory: 512Mi
         volumeMounts:
         - name: adguardsync-storage
           mountPath: /config

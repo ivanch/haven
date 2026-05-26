@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: uptimekuma
-          image: louislam/uptime-kuma:1
+          image: louislam/uptime-kuma:2
           imagePullPolicy: Always
           env:
             - name: PUID
@@ -29,6 +29,13 @@ spec:
           ports:
             - containerPort: 3001
               name: uptimekuma-port
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /

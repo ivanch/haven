@@ -5,7 +5,12 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  - 192.168.15.200-192.168.15.220
+  - 192.168.15.200/32 # reserved for DNS 1
+  - 192.168.15.202/32 # reserved for wg-easy
+  - 192.168.15.203/32 # reserved for k3s ingress
+  - 192.168.20.200/32 # reserved for DNS 1
+# - 192.168.20.201 is reserved for DNS 2
+  - 192.168.20.202-192.168.20.220
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement

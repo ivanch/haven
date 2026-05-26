@@ -20,7 +20,7 @@ metadata:
   namespace: docker-ingress
 subsets:
   - addresses:
-      - ip: 192.168.15.101
+      - ip: 192.168.20.100
     ports:
       - port: 4100
 ---

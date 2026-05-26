@@ -30,7 +30,7 @@ spec:
   - name: nfs-backup
     nfs:
       server: 192.168.15.99
-      path: /export/Backup
+      path: /srv/dev-md1/Backup
   - name: nfs-storage
     nfs:
       server: 192.168.15.99

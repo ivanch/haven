@@ -49,7 +49,7 @@ spec:
             claimName: code-config
         - name: k8s-config
           nfs:
-            server: 192.168.15.61
+            server: nfs-config.haven
             path: /export/config
 ---
 # 2) Service
