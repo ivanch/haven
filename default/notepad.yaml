@@ -19,6 +19,16 @@ spec:
         - name: notepad
           image: jdreinhardt/minimalist-web-notepad:latest
           imagePullPolicy: Always
+          # The image entrypoint runs `chown -R www-data:www-data` on the NFS-mounted
+          # _tmp dir, which fails because the NFS export uses all_squash (anonuid=65534).
+          # Override the entrypoint to skip chown — ownership is handled by the NFS server.
+          command:
+            - sh
+            - -c
+            - >-
+              mkdir -p /var/www/html/_tmp &&
+              cp -n /var/www/html/notes.htaccess /var/www/html/_tmp/.htaccess 2>/dev/null;
+              exec docker-php-entrypoint apache2-foreground
           ports:
             - containerPort: 80
           volumeMounts:
