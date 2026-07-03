@@ -1,0 +1,178 @@
+# 2) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudreve
+  namespace: cloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudreve
+  template:
+    metadata:
+      labels:
+        app: cloudreve
+    spec:
+      containers:
+        - name: cloudreve
+          image: cloudreve/cloudreve:v4
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5212
+              name: http
+            - containerPort: 6888
+              name: slave-tcp
+              protocol: TCP
+            - containerPort: 6888
+              name: slave-udp
+              protocol: UDP
+          env:
+            - name: CR_CONF_Database.Type
+              value: "postgres"
+            - name: CR_CONF_Database.Host
+              value: "postgresql.haven"
+            - name: CR_CONF_Database.Port
+              value: "5432"
+            - name: CR_CONF_Database.User
+              valueFrom:
+                secretKeyRef:
+                  name: cloudreve-secret
+                  key: DB_USER
+            - name: CR_CONF_Database.Name
+              valueFrom:
+                secretKeyRef:
+                  name: cloudreve-secret
+                  key: DB_NAME
+            - name: CR_CONF_Database.Password
+              valueFrom:
+                secretKeyRef:
+                  name: cloudreve-secret
+                  key: DB_PASSWORD
+            - name: CR_CONF_Database.SSLMode
+              value: "disable"
+            - name: CR_CONF_Redis.Server
+              value: ""
+            - name: CR_CONF_Redis.Password
+              valueFrom:
+                secretKeyRef:
+                  name: cloudreve-secret
+                  key: REDIS_PASSWORD
+          volumeMounts:
+            - name: cloudreve-data
+              mountPath: /cloudreve/data
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+      volumes:
+        - name: cloudreve-data
+          nfs:
+            server: 192.168.15.99
+            path: /export/Storage/Cloud
+---
+# 3) Service (HTTP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudreve
+  namespace: cloud
+spec:
+  type: ClusterIP
+  selector:
+    app: cloudreve
+  ports:
+    - port: 5212
+      targetPort: 5212
+      name: http
+
+---
+# 4) Service (Slave node / WebDAV — optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudreve-slave
+  namespace: cloud
+spec:
+  type: ClusterIP
+  selector:
+    app: cloudreve
+  ports:
+    - port: 6888
+      targetPort: 6888
+      name: slave-tcp
+      protocol: TCP
+    - port: 6888
+      targetPort: 6888
+      name: slave-udp
+      protocol: UDP
+
+---
+# 5) PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cloudreve-data
+  namespace: cloud
+  annotations:
+    nfs.io/storage-path: "cloudreve-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+    limits:
+      storage: 50Gi
+---
+# 6) Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloudreve
+  namespace: cloud
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cloud.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloudreve
+                port:
+                  number: 5212
+---
+# 7) Ingress Public
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloudreve-public
+  namespace: cloud
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cloud.ivanch.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloudreve
+                port:
+                  number: 5212

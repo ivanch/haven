@@ -1,0 +1,131 @@
+---
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - iris
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: PAPERLESS_URL
+              value: "http://paperless.haven"
+            - name: PAPERLESS_TIME_ZONE
+              value: "America/Sao_Paulo"
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: "por"
+            - name: PAPERLESS_OCR_LANGUAGES
+              value: "por"
+            - name: PAPERLESS_OCR_USER_ARGS
+              value: '{"invalidate_digital_signatures": true}'
+            - name: PAPERLESS_DBHOST
+              value: postgresql.haven
+            - name: PAPERLESS_REDIS
+              value: "redis://redis.haven:6379"
+            - name: PAPERLESS_PORT
+              value: "8000"
+          ports:
+            - containerPort: 8000
+              name: paperless-port
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "4000m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: paperless-data
+              subPath: data
+              mountPath: /usr/src/paperless/data
+            - name: paperless-data
+              subPath: media
+              mountPath: /usr/src/paperless/media
+            - name: paperless-data
+              subPath: export
+              mountPath: /usr/src/paperless/export
+            - name: paperless-data
+              subPath: consume
+              mountPath: /usr/src/paperless/consume
+      volumes:
+        - name: paperless-data
+          persistentVolumeClaim:
+            claimName: paperless-data
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: paperless
+  ports:
+    - port: 8000
+      targetPort: paperless-port
+---
+# 3) PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-data
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "paperless-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+    limits:
+      storage: 15Gi
+---
+# 4) Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paperless
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: paperless.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paperless
+                port:
+                  number: 8000

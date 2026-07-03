@@ -1,0 +1,136 @@
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slink
+  namespace: cloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slink
+  template:
+    metadata:
+      labels:
+        app: slink
+    spec:
+      containers:
+        - name: slink
+          image: anirdev/slink:latest
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: ORIGIN
+              value: "http://slink.haven"
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: USER_APPROVAL_REQUIRED
+              value: "true"
+            - name: USER_PASSWORD_MIN_LENGTH
+              value: "8"
+            - name: USER_PASSWORD_REQUIREMENTS
+              value: "15"
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: slink-secret
+                  key: ADMIN_USERNAME
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: slink-secret
+                  key: ADMIN_EMAIL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: slink-secret
+                  key: ADMIN_PASSWORD
+            - name: IMAGE_MAX_SIZE
+              value: "50M"
+            - name: IMAGE_STRIP_EXIF_METADATA
+              value: "true"
+            - name: IMAGE_COMPRESSION_QUALITY
+              value: "90"
+            - name: STORAGE_PROVIDER
+              value: "local"
+          ports:
+            - containerPort: 3000
+              name: slink-port
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: slink-data
+              mountPath: /app/var/data
+            - name: slink-data
+              mountPath: /app/slink/images
+      volumes:
+        - name: slink-data
+          persistentVolumeClaim:
+            claimName: slink-data
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: slink
+  namespace: cloud
+spec:
+  type: ClusterIP
+  selector:
+    app: slink
+  ports:
+    - port: 3000
+      targetPort: slink-port
+---
+# 3) PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: slink-data
+  namespace: cloud
+  annotations:
+    nfs.io/storage-path: "slink-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+    limits:
+      storage: 15Gi
+---
+# 4) Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slink
+  namespace: cloud
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: slink.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: slink
+                port:
+                  number: 3000

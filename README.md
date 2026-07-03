@@ -23,10 +23,13 @@ The repository name references my local TLD, `.haven` ;)
     - Uptimekuma
     - Vaultwarden
     - OpenWebUI
+    - Paperless
+- cloud
+    - Cloudreve
+    - Slink
 - dns
     - AdGuardHome
-    - AdGuardHome-2 (2nd instance)
-    - AdGuard-Sync
+    - AdGuardSync
 - infra
     - [Haven Notify](https://git.ivanch.me/ivanch/server-scripts/src/branch/main/haven-notify)
     - Beszel
