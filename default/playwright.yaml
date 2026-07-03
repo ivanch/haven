@@ -1,0 +1,84 @@
+# 1) Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playwright
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: playwright
+  template:
+    metadata:
+      labels:
+        app: playwright
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - iris
+      containers:
+        - name: playwright
+          image: mcr.microsoft.com/playwright:v1.58.0-noble
+          imagePullPolicy: Always
+          command: ["npx", "-y", "playwright@1.58.0", "run-server", "--port", "3000", "--host", "0.0.0.0"]
+          ports:
+            - containerPort: 3000
+          env:
+            - name: TZ
+              value: "America/Sao_Paulo"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "4000m"
+              memory: "4Gi"
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: playwright
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: playwright
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+# 3) Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: playwright
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: playwright.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: playwright
+                port:
+                  number: 3000

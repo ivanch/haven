@@ -14,12 +14,36 @@ spec:
       labels:
         app: openwebui
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - iris
       containers:
         - name: openwebui
           image: ghcr.io/open-webui/open-webui:main-slim
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-secret
+                  key: DATABASE_URL
+            - name: PLAYWRIGHT_WS_URL
+              value: "ws://browserless.default.svc.cluster.local:3000"
           resources:
             requests:
               cpu: "250m"
