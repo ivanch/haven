@@ -102,7 +102,7 @@ spec:
       labels:
         app.kubernetes.io/name: homepage
       annotations:
-        configmap.reloader/checksum: "{{ include (print $.Template.BasePath \"/app/config/services.yaml\") . | sha256sum }}"
+        configmap.reloader/checksum: '{{ include (print $.Template.BasePath "/app/config/services.yaml") . | sha256sum }}'
     spec:
       serviceAccountName: homepage
       automountServiceAccountToken: true
@@ -138,6 +138,13 @@ spec:
             - name: homepage-config
               mountPath: /app/public/images
               subPath: images
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
       volumes:
         - name: homepage-config
           persistentVolumeClaim:
@@ -167,7 +174,6 @@ metadata:
   namespace: default
   labels:
     app.kubernetes.io/name: homepage
-  annotations:
 spec:
   type: ClusterIP
   ports:
@@ -185,12 +191,6 @@ metadata:
   namespace: default
   labels:
     app.kubernetes.io/name: homepage
-  # annotations:
-  #   gethomepage.dev/description: Dynamically Detected Homepage
-  #   gethomepage.dev/enabled: "true"
-  #   gethomepage.dev/group: Cluster Management
-  #   gethomepage.dev/icon: homepage.png
-  #   gethomepage.dev/name: Homepage
 spec:
   ingressClassName: nginx
   rules:
