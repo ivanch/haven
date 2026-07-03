@@ -42,8 +42,6 @@ spec:
                 secretKeyRef:
                   name: openwebui-secret
                   key: DATABASE_URL
-            - name: PLAYWRIGHT_WS_URL
-              value: "ws://browserless.default.svc.cluster.local:3000"
           resources:
             requests:
               cpu: "250m"
