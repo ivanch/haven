@@ -40,7 +40,7 @@ spec:
           name: web-port
         env:
         - name: CRON
-          value: "*/2 * * * *"
+          value: "0 * * * *"
         - name: RUN_ON_START
           value: "true"
         - name: LOG_LEVEL

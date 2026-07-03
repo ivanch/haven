@@ -31,6 +31,13 @@ spec:
               exec docker-php-entrypoint apache2-foreground
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
           volumeMounts:
             - name: notepad-data
               mountPath: /var/www/html/_tmp
@@ -79,7 +86,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: notepad.lab
+    - host: notepad.haven
       http:
         paths:
           - path: /

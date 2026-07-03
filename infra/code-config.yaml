@@ -15,6 +15,16 @@ spec:
       labels:
         app: code-config
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - iris
       containers:
         - name: code-config
           image: lscr.io/linuxserver/code-server:latest
