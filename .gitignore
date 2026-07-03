@@ -11,3 +11,7 @@ cronjobs
 
 *.crt
 *.key
+
+chacal/
+
+secrets/
