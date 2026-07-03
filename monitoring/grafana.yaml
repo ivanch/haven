@@ -48,6 +48,9 @@ spec:
             requests:
               cpu: 250m
               memory: 750Mi
+            limits:
+              memory: 1Gi
+              cpu: 500m
           volumeMounts:
             - mountPath: /var/lib/grafana
               name: grafana-pv
@@ -94,6 +97,25 @@ spec:
   ingressClassName: nginx
   rules:
     - host: grafana.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: monitoring
+  name: grafana-public
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: grafanah.ivanch.me
       http:
         paths:
           - path: /
