@@ -63,7 +63,7 @@ Create the root certificate (valid for 10 years):
 ```bash
 openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt -subj "/CN=Homelab CA"
 ```
-  
+
 Create secret and ClusterIssuer
 ```bash
 kubectl create secret tls internal-ca-secret --cert=ca.crt --key=ca.key -n cert-manager
