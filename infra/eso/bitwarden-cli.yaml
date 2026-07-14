@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bitwarden-cli
+  namespace: bitwarden
+  labels:
+    app.kubernetes.io/name: bitwarden-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bitwarden-cli
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bitwarden-cli
+    spec:
+      containers:
+        - name: bitwarden-cli
+          image: ghcr.io/charlesthomas/bitwarden-cli:2026.3.0
+          imagePullPolicy: IfNotPresent
+          # Override the baked entrypoint so --disable-origin-protection is
+          # actually passed (it was commented out in the image's entrypoint.sh,
+          # which made bw serve reject all cross-pod requests -> connection refused).
+          command: ["/bin/bash", "-lc"]
+          args:
+            - |
+              set -e
+              bw config server "${BW_HOST}"
+              # Authenticate. Prefer the API key if client creds are present,
+              # otherwise fall back to username+password. The session is exported
+              # so the background loop can re-derive (and refresh) it.
+              login() {
+                if [ -n "$BW_CLIENTID" ] && [ -n "$BW_CLIENTSECRET" ]; then
+                  echo "Using apikey to log in"
+                  BW_SESSION=$(bw login --apikey --raw) || return 1
+                else
+                  echo "Using password to log in"
+                  BW_SESSION=$(bw login "${BW_USER}" --passwordenv BW_PASSWORD --raw) || return 1
+                fi
+                export BW_SESSION
+              }
+              login
+              # Warm the vault cache once at startup so bw serve has data immediately.
+              bw sync
+              bw status
+              # Keep the session alive: RE-LOGIN every cycle and re-sync so the on-disk
+              # vault cache stays warm and the session token never lapses. A loop that
+              # only re-ran `bw sync` with a captured session would eventually fail once
+              # the session expired (-> stale cache / "Not found" for changed items, or a
+              # full unauthenticated 400 if the initial login never happened at all).
+              echo "Starting periodic bw login+sync loop (every 5m)"
+              (
+                while true; do
+                  sleep 300
+                  login || true
+                  echo "[$(date -u +%FT%TZ)] bw sync"
+                  bw sync >/dev/null 2>&1 || echo "[$(date -u +%FT%TZ)] bw sync failed"
+                done
+              ) &
+              echo 'Running `bw serve` on port 8087'
+              bw serve --hostname 0.0.0.0 --disable-origin-protection
+          env:
+            - name: BW_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: bitwarden-cli
+                  key: BW_HOST
+            - name: BW_USER
+              valueFrom:
+                secretKeyRef:
+                  name: bitwarden-cli
+                  key: BW_USERNAME
+            - name: BW_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bitwarden-cli
+                  key: BW_PASSWORD
+          ports:
+            - name: http
+              containerPort: 8087
+              protocol: TCP
+          startupProbe:
+            tcpSocket: { port: 8087 }
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket: { port: 8087 }
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket: { port: 8087 }
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 6
+          resources:
+            limits:
+              cpu: 400m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
