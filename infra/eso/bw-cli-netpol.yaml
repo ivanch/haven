@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bw-cli
+  namespace: infra
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: bitwarden-cli
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # ESO pods (app.kubernetes.io/name: external-secrets) in the external-secrets namespace.
+        # Both podSelector AND namespaceSelector must match for cross-namespace traffic.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: external-secrets
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: external-secrets

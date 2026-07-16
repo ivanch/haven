@@ -13,5 +13,3 @@ cronjobs
 *.key
 
 chacal/
-
-secrets/
