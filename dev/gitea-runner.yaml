@@ -14,6 +14,10 @@ data:
         - "ubuntu-amd64:docker://docker.gitea.com/runner-images:ubuntu-latest"
         - "ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest"
         - "ubuntu-slim:docker://docker.gitea.com/runner-images:ubuntu-latest-slim"
+        - "runner-full:docker://git.ivanch.me/ivanch/runner-images:full"
+        - "runner-slim:docker://git.ivanch.me/ivanch/runner-images:slim"
+        - "runner-full-amd64:docker://git.ivanch.me/ivanch/runner-images:full"
+        - "runner-slim-amd64:docker://git.ivanch.me/ivanch/runner-images:slim"
 ---
 # --- ConfigMap for the ARM64 Runner ---
 apiVersion: v1
@@ -28,6 +32,8 @@ data:
       timeout: 1h
       labels:
         - "ubuntu-arm64:docker://docker.gitea.com/runner-images:ubuntu-latest"
+        - "runner-full-arm64:docker://git.ivanch.me/ivanch/runner-images:full"
+        - "runner-slim-arm64:docker://git.ivanch.me/ivanch/runner-images:slim"
 ---
 # PersistentVolumeClaim for AMD64
 apiVersion: v1
@@ -78,55 +84,55 @@ spec:
         app: gitea-runner-amd64
     spec:
       containers:
-      - name: gitea-runner
-        image: gitea/act_runner:latest
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: "500m"
-            memory: "512Mi"
-          limits:
-            cpu: "4000m"
-            memory: "4Gi"
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/gitea-runner/config.yaml
-          subPath: config.yaml
-        - name: docker-socket
-          mountPath: /var/run/docker.sock
-        - name: gitea-runner-amd64-pvc
-          mountPath: /data
-        env:
-        - name: GITEA_RUNNER_REGISTRATION_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: gitea-runner-token
-              key: REGISTRATION_TOKEN
-        - name: GITEA_INSTANCE_URL
-          value: https://git.ivanch.me
-        - name: GITEA_RUNNER_NAME
-          value: k8s-runner-amd64
-        - name: CONFIG_FILE
-          value: /etc/gitea-runner/config.yaml
+        - name: gitea-runner
+          image: gitea/act_runner:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "4000m"
+              memory: "4Gi"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/gitea-runner/config.yaml
+              subPath: config.yaml
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: gitea-runner-amd64-pvc
+              mountPath: /data
+          env:
+            - name: GITEA_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-runner-token
+                  key: REGISTRATION_TOKEN
+            - name: GITEA_INSTANCE_URL
+              value: https://git.ivanch.me
+            - name: GITEA_RUNNER_NAME
+              value: k8s-runner-amd64
+            - name: CONFIG_FILE
+              value: /etc/gitea-runner/config.yaml
       volumes:
-      - name: config-volume
-        configMap:
-          name: gitea-runner-amd64-config
-      - name: docker-socket
-        hostPath:
-          path: /var/run/docker.sock
-      - name: gitea-runner-amd64-pvc
-        persistentVolumeClaim:
-          claimName: gitea-runner-amd64-pvc
+        - name: config-volume
+          configMap:
+            name: gitea-runner-amd64-config
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+        - name: gitea-runner-amd64-pvc
+          persistentVolumeClaim:
+            claimName: gitea-runner-amd64-pvc
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - iris
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - iris
 ---
 # --- Deployment for the ARM64 Runner ---
 apiVersion: apps/v1
@@ -145,52 +151,52 @@ spec:
         app: gitea-runner-arm64
     spec:
       containers:
-      - name: gitea-runner
-        image: gitea/act_runner:latest
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: "500m"
-            memory: "512Mi"
-          limits:
-            cpu: "4000m"
-            memory: "4Gi"
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/gitea-runner/config.yaml
-          subPath: config.yaml
-        - name: docker-socket
-          mountPath: /var/run/docker.sock
-        - name: gitea-runner-arm64-pvc
-          mountPath: /data
-        env:
-        - name: GITEA_RUNNER_REGISTRATION_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: gitea-runner-token
-              key: REGISTRATION_TOKEN
-        - name: GITEA_INSTANCE_URL
-          value: https://git.ivanch.me
-        - name: GITEA_RUNNER_NAME
-          value: k8s-runner-arm64
-        - name: CONFIG_FILE
-          value: /etc/gitea-runner/config.yaml
+        - name: gitea-runner
+          image: gitea/act_runner:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "4000m"
+              memory: "4Gi"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/gitea-runner/config.yaml
+              subPath: config.yaml
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: gitea-runner-arm64-pvc
+              mountPath: /data
+          env:
+            - name: GITEA_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-runner-token
+                  key: REGISTRATION_TOKEN
+            - name: GITEA_INSTANCE_URL
+              value: https://git.ivanch.me
+            - name: GITEA_RUNNER_NAME
+              value: k8s-runner-arm64
+            - name: CONFIG_FILE
+              value: /etc/gitea-runner/config.yaml
       volumes:
-      - name: config-volume
-        configMap:
-          name: gitea-runner-arm64-config
-      - name: docker-socket
-        hostPath:
-          path: /var/run/docker.sock
-      - name: gitea-runner-arm64-pvc
-        persistentVolumeClaim:
-          claimName: gitea-runner-arm64-pvc
+        - name: config-volume
+          configMap:
+            name: gitea-runner-arm64-config
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+        - name: gitea-runner-arm64-pvc
+          persistentVolumeClaim:
+            claimName: gitea-runner-arm64-pvc
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - nexus
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - nexus

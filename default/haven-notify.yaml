@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haven-notify
+  namespace: default
+  labels:
+    app: haven-notify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haven-notify
+  template:
+    metadata:
+      labels:
+        app: haven-notify
+    spec:
+      containers:
+        - name: haven-notify
+          image: git.ivanch.me/ivanch/haven-notify:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook
+                  key: HAVEN_WEBHOOK_URL
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: haven-notify
+  namespace: default
+spec:
+  selector:
+    app: haven-notify
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: haven-notify
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: notify.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: haven-notify
+                port:
+                  number: 8080

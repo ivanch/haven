@@ -30,6 +30,31 @@ spec:
           ports:
             - containerPort: 80
               name: vault-port
+          # /alive requires no authentication and verifies the Vaultwarden process
+          startupProbe:
+            httpGet:
+              path: /alive
+              port: vault-port
+              scheme: HTTP
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /alive
+              port: vault-port
+              scheme: HTTP
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: vault-port
+              scheme: HTTP
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 6
           volumeMounts:
             - name: vaultwarden-data
               mountPath: /data
@@ -87,9 +112,9 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-  - hosts:
-    - vault.haven
-    secretName: vaultwarden-tls
+    - hosts:
+        - vault.haven
+      secretName: vaultwarden-tls
   rules:
     - host: vault.haven
       http:
