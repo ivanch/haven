@@ -1,0 +1,69 @@
+## Updates k3s in the entire cluster
+- name: Update k3s Control Plane
+  hosts: grp_k3s_server
+  serial: 1
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Update k3s on control plane node
+      ansible.builtin.shell: >
+        sh <(curl -sfL https://get.k3s.io)
+      args:
+        executable: /bin/bash
+      register: k3s_update
+
+    - name: Print update output
+      ansible.builtin.debug:
+        var: k3s_update
+
+- name: Update k3s Agents
+  hosts: grp_k3s_agent
+  serial: 1
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Cordon agent node
+      ansible.builtin.command: kubectl cordon {{ inventory_hostname }}
+      delegate_to: "{{ groups['grp_k3s_server'][0] }}"
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      ignore_errors: true
+
+    - name: Drain agent node
+      ansible.builtin.command: >
+        kubectl drain {{ inventory_hostname }}
+        --ignore-daemonsets
+        --delete-emptydir-data
+        --force
+        --timeout=60s
+      delegate_to: "{{ groups['grp_k3s_server'][0] }}"
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      ignore_errors: true
+
+    - name: Kill k3s-agent process
+      ansible.builtin.shell: k3s-killall.sh
+      ignore_errors: true
+
+    - name: Update k3s on agent node
+      ansible.builtin.shell: >
+        sh <(curl -sfL https://get.k3s.io)
+      args:
+        executable: /bin/bash
+      register: k3s_update
+
+    - name: Restart k3s-agent service
+      ansible.builtin.systemd:
+        name: k3s-agent
+        state: restarted
+
+    - name: Print update output
+      ansible.builtin.debug:
+        var: k3s_update
+
+    - name: Uncordon agent node
+      ansible.builtin.command: kubectl uncordon {{ inventory_hostname }}
+      delegate_to: "{{ groups['grp_k3s_server'][0] }}"
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      ignore_errors: true

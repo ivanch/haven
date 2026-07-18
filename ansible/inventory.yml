@@ -1,0 +1,49 @@
+---
+# Proxmox connection: local API access (the controller reaches the node directly).
+# This is the "proxmox" group — not an SSH target, just connection params.
+all:
+  children:
+    proxmox_nodes:
+      hosts:
+        otherside:
+          ansible_host: otherside.haven
+          ansible_connection: local # we call the Proxmox API, not SSH
+        astrid:
+          ansible_host: astrid.haven
+          ansible_connection: local # we call the Proxmox API, not SSH
+    k3s_cluster:
+      children:
+        grp_k3s_server: # group name == group_vars/grp_k3s_server.yml
+          hosts:
+            iris:
+              ansible_host: iris.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3
+        grp_k3s_agent: # group name == group_vars/grp_k3s_agent.yml
+          hosts:
+            vega:
+              ansible_host: vega.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3
+            nebula:
+              ansible_host: nebula.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3
+            nexus:
+              ansible_host: nexus.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3
+    lxcs:
+      children:
+        grp_docker_build: # group name == group_vars/grp_docker_build.yml
+          hosts:
+            docker_build:
+              ansible_host: docker-build.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3
+        grp_redis: # group name == group_vars/grp_redis.yml
+          hosts:
+            redis:
+              ansible_host: redis.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3

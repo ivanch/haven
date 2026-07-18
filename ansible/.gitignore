@@ -1,0 +1,13 @@
+# Encrypted secrets
+group_vars/all/vault.yml
+
+# Installed collections
+collections/
+
+# Ansible retry files
+*.retry
+
+# Local controller environment and test caches
+.venv/
+__pycache__/
+.pytest_cache/
