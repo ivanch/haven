@@ -33,56 +33,59 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - nexus
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - nexus
       containers:
-      - name: wg-easy
-        image: ghcr.io/wg-easy/wg-easy:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 51820
-          protocol: UDP
-          name: wg-port
-        - containerPort: 51821
-          protocol: TCP
-          name: web-port
-        env:
-        - name: LANG
-          value: en
-        - name: WG_HOST
-          value: vpn.ivanch.me
-        - name: WG_MTU
-          value: "1420"
-        - name: UI_TRAFFIC_STATS
-          value: "true"
-        - name: UI_CHART_TYPE
-          value: "0"
-        - name: WG_ENABLE_ONE_TIME_LINKS
-          value: "true"
-        - name: UI_ENABLE_SORT_CLIENTS
-          value: "true"
-        securityContext:
-          capabilities:
-            add:
-            - NET_ADMIN
-            - SYS_MODULE
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-        volumeMounts:
+        - name: wg-easy
+          image: ghcr.io/wg-easy/wg-easy:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 51820
+              protocol: UDP
+              name: wg-port
+            - containerPort: 51821
+              protocol: TCP
+              name: web-port
+          env:
+            - name: LANG
+              value: en
+            - name: WG_HOST
+              value: vpn.ivanch.me
+            - name: WG_MTU
+              value: "1420"
+            - name: UI_TRAFFIC_STATS
+              value: "true"
+            - name: UI_CHART_TYPE
+              value: "0"
+            - name: WG_ENABLE_ONE_TIME_LINKS
+              value: "true"
+            - name: UI_ENABLE_SORT_CLIENTS
+              value: "true"
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 1Gi
+      volumeMounts:
         - name: wg-easy-volume
           mountPath: /etc/wireguard
       restartPolicy: Always
       volumes:
-      - name: wg-easy-volume
-        persistentVolumeClaim:
-          claimName: wg-easy-pvc
+        - name: wg-easy-volume
+          persistentVolumeClaim:
+            claimName: wg-easy-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -95,14 +98,14 @@ spec:
     app: wg-easy
   loadBalancerIP: 192.168.20.203
   ports:
-  - name: wg-port
-    port: 51820
-    targetPort: 51820
-    protocol: UDP
-  - name: web-port
-    port: 51821
-    targetPort: 51821
-    protocol: TCP
+    - name: wg-port
+      port: 51820
+      targetPort: 51820
+      protocol: UDP
+    - name: web-port
+      port: 51821
+      targetPort: 51821
+      protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -112,13 +115,13 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: vpn.haven
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: wg-easy-svc
-            port:
-              number: 51821
+    - host: vpn.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wg-easy-svc
+                port:
+                  number: 51821
