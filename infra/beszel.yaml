@@ -19,18 +19,25 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
       containers:
         - name: beszel
-          image: ghcr.io/henrygd/beszel/beszel:0.17.0
+          image: ghcr.io/henrygd/beszel/beszel:0.18.7
           imagePullPolicy: Always
           ports:
             - containerPort: 8090
               name: beszel-port
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
           volumeMounts:
             - name: beszel-config
               mountPath: /beszel_data
@@ -39,7 +46,7 @@ spec:
           persistentVolumeClaim:
             claimName: beszel-config
 ---
-# 2) Service  
+# 2) Service
 apiVersion: v1
 kind: Service
 metadata:

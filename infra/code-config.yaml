@@ -44,7 +44,7 @@ spec:
               cpu: 200m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 2000m
           ports:
             - containerPort: 8443
               name: code-port

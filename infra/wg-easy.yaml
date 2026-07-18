@@ -78,9 +78,9 @@ spec:
             limits:
               cpu: 2000m
               memory: 1Gi
-      volumeMounts:
-        - name: wg-easy-volume
-          mountPath: /etc/wireguard
+          volumeMounts:
+            - name: wg-easy-volume
+              mountPath: /etc/wireguard
       restartPolicy: Always
       volumes:
         - name: wg-easy-volume
