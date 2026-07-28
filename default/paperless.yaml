@@ -46,10 +46,30 @@ spec:
               value: '{"invalidate_digital_signatures": true}'
             - name: PAPERLESS_DBHOST
               value: postgresql.haven
+            - name: PAPERLESS_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secret
+                  key: PAPERLESS_DBNAME
+            - name: PAPERLESS_DBUSER
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secret
+                  key: PAPERLESS_DBUSER
+            - name: PAPERLESS_DBPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secret
+                  key: PAPERLESS_DBPASSWORD
             - name: PAPERLESS_REDIS
               value: "redis://redis.haven:6379"
             - name: PAPERLESS_PORT
               value: "8000"
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secret
+                  key: PAPERLESS_SECRET_KEY
           ports:
             - containerPort: 8000
               name: paperless-port
