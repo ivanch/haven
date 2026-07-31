@@ -1,5 +1,6 @@
 media/
 default/*tt*
+default/havenllo*
 certs/ca*
 
 lab/*
