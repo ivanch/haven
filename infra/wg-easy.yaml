@@ -33,13 +33,13 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
+            - preference:
                 matchExpressions:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
                       - nexus
+              weight: 100
       containers:
         - name: wg-easy
           image: ghcr.io/wg-easy/wg-easy:latest
