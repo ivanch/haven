@@ -1,0 +1,130 @@
+---
+# ============ AFFiNE app ============
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: affine
+  namespace: cloud
+  labels:
+    app: affine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: affine
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: affine
+    spec:
+      containers:
+        - name: affine
+          image: ghcr.io/toeverything/affine:stable
+          imagePullPolicy: Always
+          command:
+            [
+              "sh",
+              "-c",
+              "node ./scripts/self-host-predeploy.js && node ./dist/main.js",
+            ]
+          env:
+            - name: AFFINE_CONFIG_PATH
+              value: "/root/.affine/config"
+            - name: AFFINE_SERVER_EXTERNAL_URL
+              value: "http://affine.haven"
+            - name: AFFINE_SERVER_HOST
+              value: "0.0.0.0"
+            - name: AFFINE_SERVER_PORT
+              value: "3010"
+            - name: AFFINE_SERVER_HTTPS
+              value: "false"
+            - name: AFFINE_SERVER_SUBPATH
+              value: "/"
+            - name: AFFINE_ENABLE_SYNC_FROM_STARTUP
+              value: "true"
+            - name: DATABASE_URL
+              value: "postgres://affine:affine@postgresql.haven:5432/affine"
+            - name: REDIS_SERVER_HOST
+              value: "redis.haven"
+            - name: REDIS_SERVER_PORT
+              value: "6379"
+          ports:
+            - containerPort: 3010
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3010
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /root/.affine/config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: affine-config
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: affine
+  namespace: cloud
+  labels:
+    app: affine
+spec:
+  type: ClusterIP
+  selector:
+    app: affine
+  ports:
+    - name: http
+      port: 3010
+      protocol: TCP
+      targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: affine-config
+  namespace: cloud
+  annotations:
+    nfs.io/storage-path: "affine-config"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: affine
+  namespace: cloud
+  labels:
+    app: affine
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: affine.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: affine
+                port:
+                  number: 3010

@@ -1,0 +1,113 @@
+---
+# 1) Deployment - Stirling-PDF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stirlingpdf
+  namespace: default
+  labels:
+    app: stirlingpdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stirlingpdf
+  template:
+    metadata:
+      labels:
+        app: stirlingpdf
+    spec:
+      containers:
+        - name: stirlingpdf
+          image: stirlingtools/stirling-pdf:latest
+          imagePullPolicy: Always
+          env:
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: DOCKER_ENABLE_SECURITY
+              value: "false"
+            - name: SECURITY_ENABLELOGIN
+              value: "false"
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          volumeMounts:
+            - name: config
+              mountPath: /configs
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: stirlingpdf-config
+      terminationGracePeriodSeconds: 30
+---
+# 2) Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: stirlingpdf
+  namespace: default
+  labels:
+    app: stirlingpdf
+spec:
+  type: ClusterIP
+  selector:
+    app: stirlingpdf
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: http
+---
+# 3) PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stirlingpdf-config
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "stirlingpdf-config"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 4) Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stirlingpdf
+  namespace: default
+  labels:
+    app: stirlingpdf
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: stirling.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stirlingpdf
+                port:
+                  number: 8080
