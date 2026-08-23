@@ -57,6 +57,45 @@
         name: k3s-agent
         state: restarted
 
+    - name: Fetch authoritative CA bundle from control-plane
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/tls/{{ item }}
+      delegate_to: "{{ groups['grp_k3s_server'][0] }}"
+      register: ca_bundle
+      loop:
+        - client-ca.crt
+        - server-ca.crt
+
+    - name: Install server CAs into agent trust store
+      ansible.builtin.copy:
+        dest: "/var/lib/rancher/k3s/agent/{{ item.item }}"
+        content: "{{ item.content | b64decode }}"
+        owner: root
+        group: root
+        mode: "0600"
+      loop: "{{ ca_bundle.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Stop agent and clear stale client certs signed by old CA
+      ansible.builtin.shell: |
+        systemctl stop k3s-agent
+        rm -f /var/lib/rancher/k3s/agent/client-kubelet.crt \
+              /var/lib/rancher/k3s/agent/client-k3s-controller.crt \
+              /var/lib/rancher/k3s/agent/client-kube-proxy.crt \
+              /var/lib/rancher/k3s/agent/serving-kubelet.crt \
+              /var/lib/rancher/k3s/agent/kubelet.kubeconfig \
+              /var/lib/rancher/k3s/agent/k3scontroller.kubeconfig \
+              /var/lib/rancher/k3s/agent/kubeproxy.kubeconfig \
+              /var/lib/rancher/k3s/agent/client-kubeconfig.yaml
+      args:
+        executable: /bin/bash
+
+    - name: Restart k3s-agent so it re-issues certs against the server CA
+      ansible.builtin.systemd:
+        name: k3s-agent
+        state: restarted
+
     - name: Print update output
       ansible.builtin.debug:
         var: k3s_update
