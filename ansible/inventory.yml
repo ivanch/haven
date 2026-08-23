@@ -33,6 +33,10 @@ all:
               ansible_host: nexus.haven
               ansible_user: root
               ansible_python_interpreter: /usr/bin/python3
+            polaris:
+              ansible_host: polaris.haven
+              ansible_user: root
+              ansible_python_interpreter: /usr/bin/python3
     lxcs:
       children:
         grp_docker_build: # group name == group_vars/grp_docker_build.yml
