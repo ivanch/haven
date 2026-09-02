@@ -1,16 +1,15 @@
-media/
-default/*tt*
-default/havenllo*
-certs/ca*
-
-lab/*
-sandbox/*
-!lab/nfs-pod.yaml
-
-rbac
-cronjobs
-
 *.crt
 *.key
+*.pem
+*.pfx
 
-chacal/
+# Secrets & Environment files
+.env
+.env.*
+*.env
+group_vars/**/vault.yml
+!group_vars/**/vault.yml.example
+*kubeconfig*
+
+# Ansible artifacts
+*.retry

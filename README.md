@@ -12,57 +12,25 @@ For setup details, see [SETUP.md](SETUP.md).
 
 The repository name references my local TLD, `.haven` ;)
 
-## Namespaces
-- default
-    - ArchiveBox
-    - Homarr
-    - Homepage
-    - It-tools
-    - Notepad
-    - Searxng
-    - Uptimekuma
-    - Vaultwarden
-    - OpenWebUI
-    - Paperless
-- cloud
-    - Cloudreve
-    - Slink
-- dns
-    - AdGuardHome
-    - AdGuardSync
-- infra
-    - [Haven Notify](https://git.ivanch.me/ivanch/server-scripts/src/branch/main/haven-notify)
-    - Beszel
-    - Beszel Agent (running as a DaemonSet)
-    - Code Config (VS Code for internal config editing)
-    - WireGuard Easy
-- dev
-    - Gitea Runner (x64)
-    - Gitea Runner (arm64)
-- monitoring
-    - Grafana
-    - Prometheus
-    - Node Exporter
-    - Kube State Metrics
-    - Loki
-    - Alloy
-
-#### Miscellaneous namespaces
-
-- lab (a playground/sandbox namespace)
-    - nfs-pod (for testing and accessing NFS mounts)
-- metallb-system
-    - MetalLB components
-- cert-manager
-    - cert-manager components
-- docker-ingress
-    - nginx ingress controller components for Docker-based services
-
-## Todo
-- Move ArchiveBox data to its own PVC on the NAS
-- Move Uptime Kuma to the infra namespace
-- Add links to each application's documentation
-- Add links to server scripts
-- Move Alloy to the monitoring namespace
-- Install Loki, Grafana, and Prometheus via Helm charts
-- Configure Loki and Prometheus to use PVCs
+## Repository Layout
+```
+haven/
+├── bootstrap/
+│   ├── namespaces.yaml        # cluster namespaces
+│   ├── secretstores.yaml      # cluster secret stores for BitWarden ESO
+│   ├── address-pool.yaml      # cluster IP pool for MetalLB
+│   ├── argocd-install/        # Argo CD install manifests + ingress
+│   └── root-app.yaml          # root Application watching apps/root
+├── secrets/
+│   ├── adguard.yaml           # adguard credentials from BitWarden
+│   ├── <app>.yaml             # <app> credentials from BitWarden
+│   └── ...
+├── apps/
+│   ├── root/
+│   │   ├── kustomization.yaml # points to applicationset.yaml
+│   │   └── applicationset.yaml# auto-discovers apps/*/*.yaml
+│   └── <namespace>/           # e.g., dev/, default/, infra/, monitoring/
+│       ├── <app-1>.yaml       # all-in-one manifest per app
+│       ├── <app-2>.yaml       # ...
+|       └──── ...
+```
