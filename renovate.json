@@ -1,13 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "kubernetes": {
-    "managerFilePatterns": ["/\\.yaml$/"]
+    "managerFilePatterns": [
+      "/\\.yaml$/"
+    ]
   },
   "packageRules": [
     {
       "description": "Skip local registry images (built by CI, not upstream deps)",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["git.ivanch.me/**"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "git.ivanch.me/**"
+      ],
       "enabled": false
     }
   ]
