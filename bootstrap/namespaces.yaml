@@ -1,0 +1,141 @@
+---
+# ==============================================================================
+# Core / System Namespaces
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-node-lease
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-public
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-system
+---
+# ==============================================================================
+# Infrastructure, Ingress & GitOps
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dns
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: docker-ingress
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-secrets
+  labels:
+    name: external-secrets
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-nginx
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+---
+# ==============================================================================
+# Observability & Monitoring
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alloy
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+# ==============================================================================
+# Storage & Data
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: garage
+  labels:
+    name: garage
+---
+# ==============================================================================
+# Environments & Workloads
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chacal
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloud
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cronjobs
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mindforge
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vpn-session-pods
+  labels:
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged

@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notepad
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notepad
+  template:
+    metadata:
+      labels:
+        app: notepad
+    spec:
+      containers:
+        - name: notepad
+          image: jdreinhardt/minimalist-web-notepad:latest
+          imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - >-
+              mkdir -p /var/www/html/_tmp &&
+              cp -n /var/www/html/notes.htaccess /var/www/html/_tmp/.htaccess 2>/dev/null;
+              exec docker-php-entrypoint apache2-foreground
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: notepad-data
+              mountPath: /var/www/html/_tmp
+      volumes:
+        - name: notepad-data
+          persistentVolumeClaim:
+            claimName: notepad-data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notepad
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: notepad
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: notepad-data
+  namespace: default
+  annotations:
+    nfs.io/storage-path: "notepad-data"
+spec:
+  storageClassName: "nfs-client"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: notepad
+  namespace: default
+spec:
+  rules:
+    - host: notepad.haven
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: notepad
+                port:
+                  number: 80

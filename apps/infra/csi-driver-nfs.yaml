@@ -1,0 +1,26 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: csi-driver-nfs
+  namespace: infra
+spec:
+  repo: https://kubernetes-csi.github.io/csi-driver-nfs
+  chart: csi-driver-nfs
+  version: 4.13.4
+  targetNamespace: infra
+  valuesContent: |-
+    controller:
+      replicas: 1
+      logLevel: 5
+      defaultOnDeletePolicy: retain
+    storageClasses:
+      - name: nfs-client
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"
+        parameters:
+          server: nfs-config.haven
+          share: /export/config
+          subDir: ${pvc.metadata.namespace}/${pvc.metadata.name}
+          onDelete: retain
+        reclaimPolicy: Retain
+        volumeBindingMode: Immediate

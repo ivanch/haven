@@ -1,0 +1,32 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  repo: https://traefik.github.io/charts
+  chart: traefik
+  version: 41.2.0
+  targetNamespace: traefik
+  createNamespace: true
+  valuesContent: |-
+    deployment:
+      replicas: 2
+    ingressClass:
+      enabled: true
+      isDefaultClass: true
+      name: traefik
+    service:
+      annotations:
+        metallb.io/ip-allocated-from-pool: default-pool
+        metallb.io/loadBalancerIPs: "192.168.20.204"
+      spec:
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+    resources:
+      requests:
+        cpu: 100m
+        memory: 90Mi
+      limits:
+        cpu: 1000m
+        memory: 256Mi
