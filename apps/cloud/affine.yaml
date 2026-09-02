@@ -44,7 +44,10 @@ spec:
             - name: AFFINE_ENABLE_SYNC_FROM_STARTUP
               value: "true"
             - name: DATABASE_URL
-              value: "postgres://affine:affine@postgresql.haven:5432/affine"
+              valueFrom:
+                secretKeyRef:
+                  name: affine-secret
+                  key: DB_CONNECTION_URL
             - name: REDIS_SERVER_HOST
               value: "redis.haven"
             - name: REDIS_SERVER_PORT
