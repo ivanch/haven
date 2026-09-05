@@ -1,0 +1,42 @@
+name: Trigger Renovate
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  trigger-renovate:
+    name: Trigger Renovate
+    runs-on: runner-slim-amd64
+    env:
+      KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+    steps:
+      - name: Create a one-off Renovate job
+        shell: bash
+        run: |
+          set -eu
+
+          if [ -z "${KUBE_CONFIG}" ]; then
+            echo "KUBE_CONFIG is not set or is empty."
+            exit 1
+          fi
+
+          WORK_DIR="${RUNNER_TEMP:-/tmp}/renovate-${GITHUB_RUN_ID:-$$}"
+          mkdir -p "${WORK_DIR}"
+          trap 'rm -rf "${WORK_DIR}"' EXIT
+
+          apk add --no-cache curl
+          KUBECTL_VERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
+          curl -fsSLo "${WORK_DIR}/kubectl" "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+          chmod 0755 "${WORK_DIR}/kubectl"
+
+          KUBECONFIG="${WORK_DIR}/kubeconfig"
+          umask 077
+          printf '%s' "${KUBE_CONFIG}" | tr -d '\r' > "${KUBECONFIG}"
+
+          RUN_ID="$(printf '%s' "${GITHUB_RUN_ID:-$(date -u +%Y%m%d%H%M%S)}" | tr -cd 'a-z0-9')"
+          JOB_NAME="renovate-manual-${RUN_ID}"
+
+          "${WORK_DIR}/kubectl" --kubeconfig "${KUBECONFIG}" version --client
+          "${WORK_DIR}/kubectl" --kubeconfig "${KUBECONFIG}" --namespace cronjobs get cronjob renovate
+          "${WORK_DIR}/kubectl" --kubeconfig "${KUBECONFIG}" --namespace cronjobs create job "${JOB_NAME}" --from=cronjob/renovate
+          "${WORK_DIR}/kubectl" --kubeconfig "${KUBECONFIG}" --namespace cronjobs get job "${JOB_NAME}" -o wide
