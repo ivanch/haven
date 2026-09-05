@@ -9,7 +9,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: alloy
+    namespace: monitoring
   syncPolicy:
     automated: { prune: true, selfHeal: true }
     syncOptions: [CreateNamespace=true, ServerSideApply=true]

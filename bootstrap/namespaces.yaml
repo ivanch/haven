@@ -60,24 +60,11 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ingress-nginx
-  labels:
-    app.kubernetes.io/instance: ingress-nginx
-    app.kubernetes.io/name: ingress-nginx
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: metallb-system
 ---
 # ==============================================================================
 # Observability & Monitoring
 # ==============================================================================
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: alloy
----
 apiVersion: v1
 kind: Namespace
 metadata:
