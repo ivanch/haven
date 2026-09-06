@@ -3,6 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: wg-easy-pvc
   namespace: infra
+  annotations:
+    nfs.io/storage-path: "wg-easy-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:
