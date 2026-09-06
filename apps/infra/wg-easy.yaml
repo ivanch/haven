@@ -42,7 +42,7 @@ spec:
               weight: 100
       containers:
         - name: wg-easy
-          image: ghcr.io/wg-easy/wg-easy:v15.4.0
+          image: ghcr.io/wg-easy/wg-easy:15.4.0
           imagePullPolicy: Always
           ports:
             - containerPort: 51820
