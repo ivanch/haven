@@ -52,11 +52,6 @@ spec:
               value: "disable"
             - name: CR_CONF_Redis.Server
               value: ""
-            - name: CR_CONF_Redis.Password
-              valueFrom:
-                secretKeyRef:
-                  name: cloudreve-secret
-                  key: REDIS_PASSWORD
           volumeMounts:
             - name: cloudreve-data
               mountPath: /cloudreve/data
