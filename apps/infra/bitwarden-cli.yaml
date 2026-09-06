@@ -1,3 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bitwarden-cli-ca
+  namespace: infra
+  labels:
+    app.kubernetes.io/name: bitwarden-cli
+data:
+  # Public CA certificate used by the internal-ca ClusterIssuer. Keep this in
+  # sync if the issuer CA is rotated.
+  haven-ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIFBzCCAu+gAwIBAgIUGFrjEo+WOxJpMnJqU/RQ881kWI8wDQYJKoZIhvcNAQEL
+    BQAwEzERMA8GA1UEAwwISGF2ZW4gQ0EwHhcNMjUwOTA3MTUxNTE3WhcNMzUwOTA1
+    MTUxNTE3WjATMREwDwYDVQQDDAhIYXZlbiBDQTCCAiIwDQYJKoZIhvcNAQEBBQAD
+    ggIPADCCAgoCggIBAK+8DxQfCYdRfGnJoEu0CiSuw64lnUFryvzy3GPkfGEEzc3f
+    ZiH6pUUIpQnrbVc1wdq3ojEOveGyLIqWxkljz8gEaMDJwB7udOxfbgv0QFI4cFKs
+    QzB+g3VVf74mYHvqfGB1suxmdVJ8YxcW3rQl7XD94PLxfoZuQ8IKKjskaQnYXUGH
+    wi6YBmIjpxr23lvT5cTbd5YgTFYVXDzM8nWtmnd2Wa9WkNZtKaHQKIeiNEpUPV0+
+    KSHVQC7vdmGmbUZXWpK2jmLFWfYaI0vXUal0CyMv1QidTd5LsDCI4Y+dx4mSBLuu
+    ip5V4Wm1DxttyaKUZM2vhzHEsDSVHz/xqx9nJeoJJuP+OirQVETD3FcN5PNVkWXu
+    EHQAqUciBh1CMJKKT74SE5oTT1/Eni9N2uYlvXsOs3ne6TTjZYxcL6VU+aqyYvvF
+    oMo3DX2a5nZvht4E1BtCd4I/RlnOw5QBAvWbFJqpbo/DTAGo/WBgv7jXCGail+uQ
+    r7iLoKFnhGq0WB9d2UUg6qDRD11I1nZANkv4t3Z2HFbG4XxdpttPm7JjxlcC3gGa
+    AfE3rChmAQPWPLSn6msOcfA+l5OD9SoSYU9nHy81T2q06Kfg/VWDdz7Wvi+WNZ20
+    gcfZPUZQsLlgZeyjmoA27D7ayO5uxjTWCi35kIgKcDDutyHctPRQs5zlTD35AgMB
+    AAGjUzBRMB0GA1UdDgQWBBSqABoe6cCk5vMc3LfnZfhiMbJ+kjAfBgNVHSMEGDAW
+    gBSqABoe6cCk5vMc3LfnZfhiMbJ+kjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3
+    DQEBCwUAA4ICAQAWAqQgFYEH14J2pwKptLb/K2C2oT9XLVnArQ5PKOzyWWhfZXsr
+    3YB707XJ7ju12n5gBgjCK4R66IG/iYNfHdBfhb9M1BVJ3T035RH8d6lhlZbxC02s
+    ZIMrQxDVFRrWm7gxcQiMILfPl2hJmsLf9XIUTBzPWFj9E+wExXrDYdiZXU+a/9qP
+    JvLKZA7T2lSBu+XtccySVLHXoxZ/A/c7Gp8XYJ2srZ2tXGN+j1dXiSMWHD/fpdxs
+    3GDKFnOOz2NTjHhYvBR94sOx3UkA3Pz+ufcHFBWWh23iGOPDDjh0vqAKItz2G0Kb
+    9B99XVnHWHamaZ2tV40x7lVn1mo9ImFVtxW2XDQ/NkRB9PuT2ryGE67Ey/Zfoq5M
+    0gZXIMtuMS25dTB8gQ8PKlXluIf4EbaDXhFk5xFHz5NP0E5Um4SxJP8H30/+UUPd
+    bu/TMcNiiAgxaTLBbE3nw/L7bYfH+5KuTLlp17H0UEtSI1GosgGYooov+Zbj4ZF8
+    Ko108LKAFDGe8/uQVeuo00CrEqXwVRtCCkv+LBcCJDicoyqWbp4GCBp+IVN0nxWX
+    xIRYVtQZCmA3hSH3rwt0/2dBxkcta4YkHZUEZ+EXaFl3z1tcbErOhBvupBvnBuZP
+    Rp2yvEJuuY6M1j+CZrfCm7qMipXTGPQ11Q7hf6jJ0xzxjTkV9TyV1ptPPQ==
+    -----END CERTIFICATE-----
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -63,11 +104,14 @@ spec:
               echo 'Running `bw serve` on port 8087'
               bw serve --hostname 0.0.0.0 --disable-origin-protection
           env:
+            # Bitwarden CLI is Node-based and needs the internal issuer CA to
+            # verify the HTTPS certificate for vault.haven.
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/ssl/certs/haven-ca.crt
+            # Use the in-cluster ingress. The public endpoint currently
+            # returns 502 from inside the cluster.
             - name: BW_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: bitwarden-cli
-                  key: BW_HOST
+              value: https://vault.haven
             - name: BW_USER
               valueFrom:
                 secretKeyRef:
@@ -78,6 +122,11 @@ spec:
                 secretKeyRef:
                   name: bitwarden-cli
                   key: BW_PASSWORD
+          volumeMounts:
+            - name: haven-ca
+              mountPath: /etc/ssl/certs/haven-ca.crt
+              subPath: haven-ca.crt
+              readOnly: true
           ports:
             - name: http
               containerPort: 8087
@@ -104,6 +153,10 @@ spec:
             requests:
               cpu: 50m
               memory: 128Mi
+      volumes:
+        - name: haven-ca
+          configMap:
+            name: bitwarden-cli-ca
 ---
 apiVersion: v1
 kind: Service
