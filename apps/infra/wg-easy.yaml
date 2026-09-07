@@ -18,7 +18,10 @@ metadata:
   namespace: infra
 spec:
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   replicas: 1
   selector:
     matchLabels:
@@ -81,11 +84,18 @@ spec:
           volumeMounts:
             - name: wg-easy-volume
               mountPath: /etc/wireguard
+            - name: kernel-modules
+              mountPath: /lib/modules
+              readOnly: true
       restartPolicy: Always
       volumes:
         - name: wg-easy-volume
           persistentVolumeClaim:
             claimName: wg-easy-pvc
+        - name: kernel-modules
+          hostPath:
+            path: /lib/modules
+            type: Directory
 ---
 apiVersion: v1
 kind: Service
@@ -124,3 +134,14 @@ spec:
                 name: wg-easy-svc
                 port:
                   number: 51821
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: wg-easy-pdb
+  namespace: infra
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: wg-easy
