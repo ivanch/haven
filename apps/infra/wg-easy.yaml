@@ -36,7 +36,7 @@ spec:
                   - key: kubernetes.io/hostname
                     operator: In
                     values:
-                      - nexus
+                      - polaris
               weight: 100
       containers:
         - name: wg-easy
