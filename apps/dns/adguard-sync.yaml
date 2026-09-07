@@ -31,7 +31,6 @@ spec:
       containers:
         - name: adguardsync
           image: ghcr.io/bakito/adguardhome-sync:v0.9.2
-          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               protocol: TCP

@@ -39,7 +39,6 @@ spec:
             - name: TZ
               value: America/Sao_Paulo
           image: mcr.microsoft.com/playwright:v1.62.1-noble
-          imagePullPolicy: Always
           name: playwright
           ports:
             - containerPort: 3000

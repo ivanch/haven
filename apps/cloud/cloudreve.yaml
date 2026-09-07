@@ -16,7 +16,6 @@ spec:
       containers:
         - name: cloudreve
           image: cloudreve/cloudreve:v4
-          imagePullPolicy: Always
           ports:
             - containerPort: 5212
               name: http

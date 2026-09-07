@@ -20,7 +20,6 @@ spec:
       containers:
         - name: uptimekuma
           image: louislam/uptime-kuma:2
-          imagePullPolicy: Always
           env:
             - name: PUID
               value: "1000"
