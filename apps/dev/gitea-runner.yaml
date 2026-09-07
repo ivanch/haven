@@ -41,8 +41,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: gitea-runner-amd64-pvc
   namespace: dev
-  annotations:
-    nfs.io/storage-path: "gitea-runner-amd64-pvc"
 spec:
   storageClassName: "nfs-client"
   accessModes:
@@ -57,8 +55,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: gitea-runner-arm64-pvc
   namespace: dev
-  annotations:
-    nfs.io/storage-path: "gitea-runner-arm64-pvc"
 spec:
   storageClassName: "nfs-client"
   accessModes:

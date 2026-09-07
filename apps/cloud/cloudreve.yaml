@@ -108,8 +108,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: cloudreve-data
   namespace: cloud
-  annotations:
-    nfs.io/storage-path: "cloudreve-data"
 spec:
   storageClassName: "nfs-client"
   accessModes:

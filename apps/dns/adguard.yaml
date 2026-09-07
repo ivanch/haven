@@ -3,8 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: adguardhome-pvc
   namespace: dns
-  annotations:
-    nfs.io/storage-path: "adguardhome-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

@@ -3,8 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: adguardsync-pvc
   namespace: dns
-  annotations:
-    nfs.io/storage-path: "adguardsync-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

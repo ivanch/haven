@@ -118,8 +118,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: paperless-data
   namespace: default
-  annotations:
-    nfs.io/storage-path: "paperless-data"
 spec:
   storageClassName: "nfs-client"
   accessModes:

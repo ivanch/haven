@@ -157,8 +157,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: homepage-config
   namespace: default
-  annotations:
-    nfs.io/storage-path: "homepage-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

@@ -3,8 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: wg-easy-pvc
   namespace: infra
-  annotations:
-    nfs.io/storage-path: "wg-easy-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:
@@ -63,6 +61,8 @@ spec:
             - name: UI_CHART_TYPE
               value: "0"
             - name: WG_ENABLE_ONE_TIME_LINKS
+              value: "true"
+            - name: INSECURE
               value: "true"
             - name: UI_ENABLE_SORT_CLIENTS
               value: "true"

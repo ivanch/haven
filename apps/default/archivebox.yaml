@@ -129,8 +129,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: archivebox-data
   namespace: default
-  annotations:
-    nfs.io/storage-path: "archivebox-data"
 spec:
   storageClassName: "nfs-client"
   accessModes:

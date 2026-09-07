@@ -63,8 +63,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: searxng-config
   namespace: default
-  annotations:
-    nfs.io/storage-path: "searxng-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

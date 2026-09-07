@@ -120,8 +120,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: changedetection-config
   namespace: default
-  annotations:
-    nfs.io/storage-path: "changedetection-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

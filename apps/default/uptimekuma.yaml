@@ -76,8 +76,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: uptimekuma-config
   namespace: default
-  annotations:
-    nfs.io/storage-path: "uptimekuma-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

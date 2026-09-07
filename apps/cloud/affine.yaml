@@ -100,8 +100,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: affine-config
   namespace: cloud
-  annotations:
-    nfs.io/storage-path: "affine-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:

@@ -61,8 +61,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: notepad-data
   namespace: default
-  annotations:
-    nfs.io/storage-path: "notepad-data"
 spec:
   storageClassName: "nfs-client"
   accessModes:

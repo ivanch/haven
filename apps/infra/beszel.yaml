@@ -66,8 +66,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: beszel-config
   namespace: infra
-  annotations:
-    nfs.io/storage-path: "beszel-config"
 spec:
   storageClassName: "nfs-client"
   accessModes:
