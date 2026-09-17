@@ -7,6 +7,8 @@ metadata:
     app: prometheus
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: prometheus
@@ -22,7 +24,9 @@ spec:
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus"
-            - "--storage.tsdb.retention.time=1d"
+            - "--storage.tsdb.retention.time=2d"
+            # Keep a generous buffer on the 117 GiB sandbox filesystem; WAL may exceed this briefly.
+            - "--storage.tsdb.retention.size=8GB"
             - "--web.enable-lifecycle"
           ports:
             - containerPort: 9090
@@ -44,8 +48,9 @@ spec:
           persistentVolumeClaim:
             claimName: prometheus-pvc
         - name: prometheus-storage
-          persistentVolumeClaim:
-            claimName: prometheus-storage-pvc
+          nfs:
+            server: nexus.haven
+            path: /export/sandbox/prometheus
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
