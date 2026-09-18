@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: file-nginx
+      annotations:
+        checksum/file-nginx-conf: "03f20da7304eb251b0c382fcfb0d76203945324404034b71f17539cd863e7139"
     spec:
       containers:
         - name: nginx
@@ -83,11 +85,14 @@ data:
         server_name  _;
 
         root   /usr/share/nginx/data/file-nginx;
-        index  index.html;
 
         autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
 
         location / {
+            # Bypass the static welcome page so every directory is browsable.
+            index __directory_listing__;
             try_files $uri $uri/ =404;
         }
     }
