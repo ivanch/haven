@@ -20,7 +20,7 @@ spec:
       labels:
         app: file-nginx
       annotations:
-        checksum/file-nginx-conf: "03f20da7304eb251b0c382fcfb0d76203945324404034b71f17539cd863e7139"
+        checksum/file-nginx-conf: "4235705a54e5003a340f1a4e164c3e3239fd4327d9aa9ecf0c640a3655def3c9"
     spec:
       containers:
         - name: nginx
@@ -89,6 +89,11 @@ data:
         autoindex on;
         autoindex_exact_size off;
         autoindex_localtime on;
+
+        location = /index.html {
+            # The legacy static page is now the live directory browser.
+            return 302 /;
+        }
 
         location / {
             # Bypass the static welcome page so every directory is browsable.
