@@ -12,7 +12,7 @@ spec:
         spec:
           containers:
             - name: renovate
-              image: renovate/renovate:44.103.7
+              image: renovate/renovate:44.115.12
               args:
                 - ivanch/haven
               env:
