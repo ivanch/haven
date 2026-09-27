@@ -1,2 +1,2 @@
 -r requirements-python.txt
-ansible-lint==26.6.0
+ansible-lint==26.9.0
