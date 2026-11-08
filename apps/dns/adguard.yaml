@@ -40,7 +40,7 @@ spec:
                       - arm64
       containers:
         - name: adguardhome
-          image: adguard/adguardhome:v0.107.79
+          image: adguard/adguardhome:v0.107.80
           ports:
             - containerPort: 53
               protocol: TCP
