@@ -1,0 +1,16 @@
+# Disables IPv6 DNS resolution for the local domain
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  haven.server: |
+    haven:53 {
+        errors
+        cache 30
+        template IN AAAA haven {
+            rcode NOERROR
+        }
+        forward . /etc/resolv.conf
+    }
